@@ -1,7 +1,12 @@
 import React, { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useToast } from "@/components/ui/use-toast";
 import { Save } from "lucide-react";
 import { ClassSectionSelector } from "./ClassSection/ClassSectionSelector";
 import { ClassSectionManager } from "./ClassSection/ClassSectionManager";
@@ -15,9 +20,9 @@ import { useSubjects } from "../hooks/useSubjects";
 import { useTimeSlots } from "../hooks/useTimeSlots";
 import { useTimetable } from "../hooks/useTimetable";
 import { checkConflictsAcrossTimeTables } from "../utils/helpers";
-import { TimeTableEntry, TimeSlot } from "../types";
+import { TimeTableEntry, TimeSlot, Day, Teacher, Subject } from "../types";
 
-const days = [
+const days: Day[] = [
   { id: 1, name: "Monday" },
   { id: 2, name: "Tuesday" },
   { id: 3, name: "Wednesday" },
@@ -192,27 +197,38 @@ export const TimetableManagement: React.FC = () => {
         open={!!selectedCell}
         onOpenChange={(open) => !open && setSelectedCell(null)}
       >
-        <TeacherSubjectManager
-          teachers={teachers}
-          subjects={subjects}
-          addTeacher={addTeacher}
-          updateTeacher={updateTeacher}
-          deleteTeacher={deleteTeacher}
-          addSubject={addSubject}
-          updateSubject={updateSubject}
-          deleteSubject={deleteSubject}
-        />
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Assign Teacher</DialogTitle>
+          </DialogHeader>
+          <TeacherSubjectManager
+            teachers={teachers}
+            subjects={subjects}
+            addTeacher={addTeacher}
+            updateTeacher={updateTeacher}
+            deleteTeacher={deleteTeacher}
+            addSubject={addSubject}
+            updateSubject={updateSubject}
+            deleteSubject={deleteSubject}
+            onTeacherSelect={handleTeacherChange}
+          />
+        </DialogContent>
       </Dialog>
       <Dialog open={isManagingClasses} onOpenChange={setIsManagingClasses}>
-        <ClassSectionManager
-          classes={classes}
-          addClass={addClass}
-          updateClass={updateClass}
-          deleteClass={deleteClass}
-          addSection={addSection}
-          updateSection={updateSection}
-          deleteSection={deleteSection}
-        />
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Manage Classes and Sections</DialogTitle>
+          </DialogHeader>
+          <ClassSectionManager
+            classes={classes}
+            addClass={addClass}
+            updateClass={updateClass}
+            deleteClass={deleteClass}
+            addSection={addSection}
+            updateSection={updateSection}
+            deleteSection={deleteSection}
+          />
+        </DialogContent>
       </Dialog>
       <TimeSlotEditor
         timeSlot={editingTimeSlot}
