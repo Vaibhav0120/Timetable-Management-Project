@@ -1,27 +1,18 @@
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { TimeSlot } from "../../types";
+import React from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { TimeSlot } from '../../types'
 
 interface TimeSlotEditorProps {
-  timeSlot: TimeSlot | null;
-  onUpdate: (updatedTimeSlot: TimeSlot) => void;
-  onClose: () => void;
+  timeSlot: TimeSlot | null
+  onUpdate: (updatedTimeSlot: TimeSlot) => void
+  onClose: () => void
 }
 
-export const TimeSlotEditor: React.FC<TimeSlotEditorProps> = ({
-  timeSlot,
-  onUpdate,
-  onClose,
-}) => {
-  if (!timeSlot) return null;
+export const TimeSlotEditor: React.FC<TimeSlotEditorProps> = ({ timeSlot, onUpdate, onClose }) => {
+  if (!timeSlot) return null
 
   return (
     <Dialog open={!!timeSlot} onOpenChange={onClose}>
@@ -37,9 +28,7 @@ export const TimeSlotEditor: React.FC<TimeSlotEditorProps> = ({
                 id="startTime"
                 type="time"
                 value={timeSlot.startTime}
-                onChange={(e) =>
-                  onUpdate({ ...timeSlot, startTime: e.target.value })
-                }
+                onChange={(e) => onUpdate({ ...timeSlot, startTime: e.target.value })}
               />
             </div>
             <div>
@@ -48,26 +37,18 @@ export const TimeSlotEditor: React.FC<TimeSlotEditorProps> = ({
                 id="endTime"
                 type="time"
                 value={timeSlot.endTime}
-                onChange={(e) =>
-                  onUpdate({
-                    ...timeSlot,
-
-                    endTime: e.target.value,
-                  })
-                }
+                onChange={(e) => onUpdate({ ...timeSlot, endTime: e.target.value })}
               />
             </div>
           </div>
-          <Button
-            onClick={() => {
-              onUpdate(timeSlot);
-              onClose();
-            }}
-          >
+          <Button onClick={() => {
+            onUpdate(timeSlot)
+            onClose()
+          }}>
             Update Time Slot
           </Button>
         </div>
       </DialogContent>
     </Dialog>
-  );
-};
+  )
+}
