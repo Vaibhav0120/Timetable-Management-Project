@@ -1,7 +1,3 @@
-To make your GitHub repository for the Timetable Management project beautiful and systematic, here's how you can structure the **README.md** file with proper formatting and details:
-
----
-
 # 📅 Timetable Management System
 
 Efficiently manage classes, sections, teachers, and subjects while ensuring conflict-free timetable generation. Built with modern web technologies to provide a seamless user experience.
