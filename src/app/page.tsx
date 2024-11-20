@@ -1,3 +1,4 @@
+// src/app/page.tsx
 import { TimetableManagement } from '@/components/TimetableManagement'
 
 export default function Home() {

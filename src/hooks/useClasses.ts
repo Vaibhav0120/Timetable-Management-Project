@@ -1,63 +1,91 @@
-import { useState, useCallback } from 'react'
-import { Class, Section } from '../types'
+import { useState, useCallback } from 'react';
+import { Class, Section } from '../types';
 
 export const useClasses = () => {
   const [classes, setClasses] = useState<Class[]>([
-    { id: 1, name: 'Class A', sections: [{ id: 1, name: 'Section A' }, { id: 2, name: 'Section B' }] },
-    { id: 2, name: 'Class B', sections: [{ id: 3, name: 'Section A' }] }
-  ])
+    { 
+      id: 1, 
+      name: 'Branch CSE', 
+      sections: [
+        { id: 1, name: 'CSE A' },
+        { id: 2, name: 'CSE B' },
+        { id: 3, name: 'CSE C' }, 
+        { id: 4, name: 'CSE D' }
+      ] 
+    },
+    { 
+      id: 2, 
+      name: 'Branch AIML', 
+      sections: [
+        { id: 5, name: 'AIML A' },
+        { id: 6, name: 'AIML B' }
+      ] 
+    }
+  ]);
 
   const addClass = useCallback((name: string) => {
     setClasses(prevClasses => {
-      const newId = Math.max(...prevClasses.map(c => c.id), 0) + 1
-      return [...prevClasses, { id: newId, name: name.trim(), sections: [] }]
-    })
-  }, [])
+      const newId = Math.max(...prevClasses.map(c => c.id), 0) + 1;
+      return [...prevClasses, { id: newId, name: name.trim(), sections: [] }];
+    });
+  }, []);
 
   const updateClass = useCallback((updatedClass: Class) => {
-    setClasses(prevClasses => prevClasses.map(c => c.id === updatedClass.id ? updatedClass : c))
-  }, [])
+    setClasses(prevClasses =>
+      prevClasses.map(c => (c.id === updatedClass.id ? updatedClass : c))
+    );
+  }, []);
 
   const deleteClass = useCallback((classId: number) => {
-    setClasses(prevClasses => prevClasses.filter(c => c.id !== classId))
-  }, [])
+    setClasses(prevClasses => prevClasses.filter(c => c.id !== classId));
+  }, []);
 
   const addSection = useCallback((classId: number, sectionName: string) => {
-    setClasses(prevClasses => prevClasses.map(c => {
-      if (c.id === classId) {
-        const newSectionId = Math.max(...c.sections.map(s => s.id), 0) + 1
-        return {
-          ...c,
-          sections: [...c.sections, { id: newSectionId, name: sectionName.trim() }]
+    setClasses(prevClasses =>
+      prevClasses.map(c => {
+        if (c.id === classId) {
+          const newSectionId = c.sections.length > 0 
+            ? Math.max(...c.sections.map(s => s.id)) + 1 
+            : 1;
+          return {
+            ...c,
+            sections: [...c.sections, { id: newSectionId, name: sectionName.trim() }]
+          };
         }
-      }
-      return c
-    }))
-  }, [])
+        return c;
+      })
+    );
+  }, []);
 
   const updateSection = useCallback((classId: number, updatedSection: Section) => {
-    setClasses(prevClasses => prevClasses.map(c => {
-      if (c.id === classId) {
-        return {
-          ...c,
-          sections: c.sections.map(s => s.id === updatedSection.id ? updatedSection : s)
+    setClasses(prevClasses =>
+      prevClasses.map(c => {
+        if (c.id === classId) {
+          return {
+            ...c,
+            sections: c.sections.map(s =>
+              s.id === updatedSection.id ? updatedSection : s
+            )
+          };
         }
-      }
-      return c
-    }))
-  }, [])
+        return c;
+      })
+    );
+  }, []);
 
   const deleteSection = useCallback((classId: number, sectionId: number) => {
-    setClasses(prevClasses => prevClasses.map(c => {
-      if (c.id === classId) {
-        return {
-          ...c,
-          sections: c.sections.filter(s => s.id !== sectionId)
+    setClasses(prevClasses =>
+      prevClasses.map(c => {
+        if (c.id === classId) {
+          return {
+            ...c,
+            sections: c.sections.filter(s => s.id !== sectionId)
+          };
         }
-      }
-      return c
-    }))
-  }, [])
+        return c;
+      })
+    );
+  }, []);
 
   return {
     classes,
@@ -67,5 +95,5 @@ export const useClasses = () => {
     addSection,
     updateSection,
     deleteSection
-  }
-}
+  };
+};

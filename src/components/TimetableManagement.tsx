@@ -1,6 +1,8 @@
+// src/components/TimetableManagement.tsx
+
 'use client'
 
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useToast } from "@/components/ui/use-toast"
@@ -32,6 +34,7 @@ export const TimetableManagement: React.FC = () => {
   const [selectedClass, setSelectedClass] = useState<number | null>(null)
   const [selectedSection, setSelectedSection] = useState<number | null>(null)
   const [isManagingClasses, setIsManagingClasses] = useState(false)
+  const [isManagingTeachersSubjects, setIsManagingTeachersSubjects] = useState(false)
   const [selectedCell, setSelectedCell] = useState<TimeTableEntry | null>(null)
   const [editingTimeSlot, setEditingTimeSlot] = useState<TimeSlot | null>(null)
   const [saveStatus, setSaveStatus] = useState<'Saved' | 'Not Saved' | 'Error'>('Saved')
@@ -169,6 +172,26 @@ export const TimetableManagement: React.FC = () => {
           />
         </DialogContent>
       </Dialog>
+      <Dialog open={isManagingTeachersSubjects} onOpenChange={setIsManagingTeachersSubjects}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Manage Teachers and Subjects</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <TeacherSubjectManager
+              teachers={teachers}
+              subjects={subjects}
+              addTeacher={addTeacher}
+              updateTeacher={updateTeacher}
+              deleteTeacher={deleteTeacher}
+              addSubject={addSubject}
+              updateSubject={updateSubject}
+              deleteSubject={deleteSubject}
+              onTeacherSelect={() => {}}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
       <TimeSlotEditor
         timeSlot={editingTimeSlot}
         onUpdate={updateTimeSlot}
@@ -182,6 +205,9 @@ export const TimetableManagement: React.FC = () => {
           deleteTimeSlot={deleteTimeSlot}
         />
       </div>
+      <Button onClick={() => setIsManagingTeachersSubjects(true)} className="mt-4">
+        Manage Teachers and Subjects
+      </Button>
     </div>
   )
 }

@@ -3,8 +3,8 @@ import { Teacher } from '../types'
 
 export const useTeachers = () => {
   const [teachers, setTeachers] = useState<Teacher[]>([
-    { id: 1, name: 'John Doe', subjectId: 1 },
-    { id: 2, name: 'Jane Smith', subjectId: 2 }
+    { id: 1, name: 'Vaibhav', subjectId: 1 },
+    { id: 2, name: 'Anirudh', subjectId: 2 }
   ])
 
   const addTeacher = useCallback((name: string, subjectId: number) => {

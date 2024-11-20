@@ -1,3 +1,4 @@
+// src/components/ClassSection/ClassSectionSelector.tsx
 import React from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Class } from '../../types'

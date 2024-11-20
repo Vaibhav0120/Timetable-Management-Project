@@ -1,3 +1,4 @@
+// src/components/Timetable/TimetableCell.tsx
 import React from 'react'
 import { TableCell } from '@/components/ui/table'
 import { TimeTableEntry, Teacher, Subject } from '../../types'
