@@ -8,17 +8,14 @@ export const useClasses = () => {
       name: 'Branch CSE', 
       sections: [
         { id: 1, name: 'CSE A' },
-        { id: 2, name: 'CSE B' },
-        { id: 3, name: 'CSE C' }, 
-        { id: 4, name: 'CSE D' }
+        { id: 2, name: 'CSE B' }
       ] 
     },
     { 
       id: 2, 
       name: 'Branch AIML', 
       sections: [
-        { id: 5, name: 'AIML A' },
-        { id: 6, name: 'AIML B' }
+        { id: 3, name: 'AIML A' }
       ] 
     }
   ]);

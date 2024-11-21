@@ -1,8 +1,6 @@
-// src/components/TimetableManagement.tsx
-
 'use client'
 
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useToast } from "@/components/ui/use-toast"
@@ -20,6 +18,8 @@ import { useTimeSlots } from '../hooks/useTimeSlots'
 import { useTimetable } from '../hooks/useTimetable'
 import { checkConflictsAcrossTimeTables } from '../utils/helpers'
 import { TimeTableEntry, TimeSlot, Day, Teacher, Subject } from '../types'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const days: Day[] = [
   { id: 1, name: 'Monday' },
@@ -34,10 +34,12 @@ export const TimetableManagement: React.FC = () => {
   const [selectedClass, setSelectedClass] = useState<number | null>(null)
   const [selectedSection, setSelectedSection] = useState<number | null>(null)
   const [isManagingClasses, setIsManagingClasses] = useState(false)
-  const [isManagingTeachersSubjects, setIsManagingTeachersSubjects] = useState(false)
   const [selectedCell, setSelectedCell] = useState<TimeTableEntry | null>(null)
   const [editingTimeSlot, setEditingTimeSlot] = useState<TimeSlot | null>(null)
   const [saveStatus, setSaveStatus] = useState<'Saved' | 'Not Saved' | 'Error'>('Saved')
+  const [isManagingTimeSlots, setIsManagingTimeSlots] = useState(false)
+  const [isManagingTeachersSubjects, setIsManagingTeachersSubjects] = useState(false);
+  const [teacherChangeError, setTeacherChangeError] = useState<string | null>(null);
 
   const { classes, addClass, updateClass, deleteClass, addSection, updateSection, deleteSection } = useClasses()
   const { teachers, addTeacher, updateTeacher, deleteTeacher } = useTeachers()
@@ -77,12 +79,15 @@ export const TimetableManagement: React.FC = () => {
 
       if (conflict) {
         const conflictingTeacher = teachers.find(t => t.id === newTeacherId)
+        const errorMessage = `${conflictingTeacher?.name} is already assigned to another class in this time slot.`
+        setTeacherChangeError(errorMessage)
         toast({
           title: "Conflict Detected",
-          description: `${conflictingTeacher?.name} is already assigned to another class in this time slot.`,
+          description: errorMessage,
           variant: "destructive",
         })
       } else {
+        setTeacherChangeError(null)
         updateTeacherInTimeTable(newTeacherId, selectedCell.classId, selectedCell.sectionId, selectedCell.timeSlotId, selectedCell.dayId)
         setSelectedCell(null)
         setSaveStatus('Not Saved')
@@ -130,54 +135,100 @@ export const TimetableManagement: React.FC = () => {
           <Save className="mr-2 h-4 w-4" /> Save Timetable
         </Button>
       </div>
-      <TimetableGrid
-        timeTable={timeTable}
-        days={days}
-        timeSlots={timeSlots}
-        teachers={teachers}
-        subjects={subjects}
-        onCellClick={handleCellClick}
-      />
-      <Dialog open={!!selectedCell} onOpenChange={(open) => !open && setSelectedCell(null)}>
+      {selectedClass && selectedSection && (
+        <TimetableGrid
+          timeTable={timeTable}
+          days={days}
+          timeSlots={timeSlots}
+          teachers={teachers}
+          subjects={subjects}
+          onCellClick={handleCellClick}
+        />
+      )}
+      {selectedClass && selectedSection && (
+        <div className="mt-4 flex space-x-2">
+          <Button onClick={() => setIsManagingTeachersSubjects(true)}>
+            Manage Teachers and Subjects
+          </Button>
+          <Button onClick={() => setIsManagingTimeSlots(true)}>
+            Edit Time Slots
+          </Button>
+        </div>
+      )}
+      <Dialog open={!!selectedCell} onOpenChange={(open) => {
+        if (!open) {
+          setSelectedCell(null)
+          setTeacherChangeError(null)
+        }
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Assign Teacher</DialogTitle>
           </DialogHeader>
-          <TeacherSubjectManager
-            teachers={teachers}
-            subjects={subjects}
-            addTeacher={addTeacher}
-            updateTeacher={updateTeacher}
-            deleteTeacher={deleteTeacher}
-            addSubject={addSubject}
-            updateSubject={updateSubject}
-            deleteSubject={deleteSubject}
-            onTeacherSelect={handleTeacherChange}
-          />
+          <div className="grid gap-4 py-4">
+            <Label htmlFor="teacher">Select Teacher</Label>
+            <Select onValueChange={(value) => handleTeacherChange(Number(value))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a teacher" />
+              </SelectTrigger>
+              <SelectContent>
+                {teachers.map(teacher => (
+                  <SelectItem key={teacher.id} value={teacher.id.toString()}>
+                    {`${teacher.name} (${subjects.find(s => s.id === teacher.subjectId)?.name})`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {teacherChangeError && (
+              <p className="text-red-500 text-sm mt-2">{teacherChangeError}</p>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
       <Dialog open={isManagingClasses} onOpenChange={setIsManagingClasses}>
-        <DialogContent>
+        <DialogContent className="max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>Manage Classes and Sections</DialogTitle>
           </DialogHeader>
-          <ClassSectionManager
-            classes={classes}
-            addClass={addClass}
-            updateClass={updateClass}
-            deleteClass={deleteClass}
-            addSection={addSection}
-            updateSection={updateSection}
-            deleteSection={deleteSection}
-          />
+          <div className="flex-grow overflow-y-auto pr-6">
+            <ClassSectionManager
+              classes={classes}
+              addClass={addClass}
+              updateClass={updateClass}
+              deleteClass={deleteClass}
+              addSection={addSection}
+              updateSection={updateSection}
+              deleteSection={deleteSection}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+      <TimeSlotEditor
+        timeSlot={editingTimeSlot}
+        onUpdate={updateTimeSlot}
+        onClose={() => setEditingTimeSlot(null)}
+      />
+      <Dialog open={isManagingTimeSlots} onOpenChange={setIsManagingTimeSlots}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Manage Time Slots</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <TimeSlotManager
+              timeSlots={timeSlots}
+              addTimeSlot={addTimeSlot}
+              updateTimeSlot={updateTimeSlot}
+              deleteTimeSlot={deleteTimeSlot}
+            />
+          </div>
         </DialogContent>
       </Dialog>
       <Dialog open={isManagingTeachersSubjects} onOpenChange={setIsManagingTeachersSubjects}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>Manage Teachers and Subjects</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <div className="flex-grow overflow-y-auto pr-6">
             <TeacherSubjectManager
               teachers={teachers}
               subjects={subjects}
@@ -192,22 +243,6 @@ export const TimetableManagement: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
-      <TimeSlotEditor
-        timeSlot={editingTimeSlot}
-        onUpdate={updateTimeSlot}
-        onClose={() => setEditingTimeSlot(null)}
-      />
-      <div className="mt-4">
-        <TimeSlotManager
-          timeSlots={timeSlots}
-          addTimeSlot={addTimeSlot}
-          updateTimeSlot={updateTimeSlot}
-          deleteTimeSlot={deleteTimeSlot}
-        />
-      </div>
-      <Button onClick={() => setIsManagingTeachersSubjects(true)} className="mt-4">
-        Manage Teachers and Subjects
-      </Button>
     </div>
   )
 }

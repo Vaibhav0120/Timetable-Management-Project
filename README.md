@@ -4,19 +4,11 @@ Efficiently manage classes, sections, teachers, and subjects while ensuring conf
 
 ## 🚀 Features
 
-- 🏫 **Manage Classes and Sections**  
-  Add, edit, and delete classes and sections to keep the system organized.
-  
-- 👩‍🏫 **Manage Teachers and Subjects**  
-  Assign subjects to teachers and manage their availability effortlessly.
-  
-- ⏰ **Create and Edit Time Slots**  
-  Customize time slots to suit your institution's needs.
-
-- 📊 **Generate Timetables**  
-  Automatically generate timetables for each class and section.
-
-- ⚠️ **Conflict Detection**  
+- 🏫 **Manage Classes and Sections**Add, edit, and delete classes and sections to keep the system organized.
+- 👩‍🏫 **Manage Teachers and Subjects**Assign subjects to teachers and manage their availability effortlessly.
+- ⏰ **Create and Edit Time Slots**Customize time slots to suit your institution's needs.
+- 📊 **Generate Timetables**Automatically generate timetables for each class and section.
+- ⚠️ **Conflict Detection**
   Ensure no teacher is double-booked or assigned overlapping schedules.
 
 ---
@@ -34,22 +26,12 @@ Efficiently manage classes, sections, teachers, and subjects while ensuring conf
 
 ### **Main Components**
 
-- **`TimetableManagement`**:  
-  Orchestrates the application's functionality.
-  
-- **`ClassSectionSelector`**:  
-  Allows users to select and view specific classes and sections.
-  
-- **`ClassSectionManager`**:  
-  Manages the addition, editing, and deletion of classes and sections.
-  
-- **`TeacherSubjectManager`**:  
-  Handles the assignment of subjects to teachers and their availability.
-  
-- **`TimeSlotManager`**:  
-  Enables creating and editing custom time slots.
-  
-- **`TimetableGrid`**:  
+- **`TimetableManagement`**:Orchestrates the application's functionality.
+- **`ClassSectionSelector`**:Allows users to select and view specific classes and sections.
+- **`ClassSectionManager`**:Manages the addition, editing, and deletion of classes and sections.
+- **`TeacherSubjectManager`**:Handles the assignment of subjects to teachers and their availability.
+- **`TimeSlotManager`**:Enables creating and editing custom time slots.
+- **`TimetableGrid`**:
   Displays and allows editing of the timetable for each class and section.
 
 ### **Custom Hooks**
@@ -73,22 +55,22 @@ The application employs custom React hooks to manage the state of various entiti
 
 ### Steps
 
-1. **Clone the Repository**  
+1. **Clone the Repository**
+
    ```bash
    git clone https://github.com/Vaibhav0120/timetable-management.git
    cd timetable-management
    ```
+2. **Install Dependencies**
 
-2. **Install Dependencies**  
    ```bash
    npm install
    ```
+3. **Run the Development Server**
 
-3. **Run the Development Server**  
    ```bash
    npm run dev
    ```
-
 4. Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
 
 ---
@@ -101,10 +83,10 @@ _Add screenshots of your application here to give visitors a visual overview of 
 
 ## 🤝 Contributing
 
-Contributions are welcome! To contribute:  
+Contributions are welcome! To contribute:
 
-1. Fork the repository.  
-2. Create a new branch for your feature/bugfix.  
+1. Fork the repository.
+2. Create a new branch for your feature/bugfix.
 3. Submit a pull request once your changes are complete.
 
 ---
@@ -123,7 +105,7 @@ Special thanks to all contributors and open-source libraries that made this proj
 
 ### Example Repository Structure
 
-```
+```bash
 timetable-management/
 ├── src/
 │   ├── app/
@@ -162,12 +144,12 @@ timetable-management/
 │   │   └── utils.ts
 │   ├── types/
 │   │   └── index.ts
-│   └── utils/
-│       └── helpers.ts
+│   ├── utils/
+│   │   └── helpers.ts
+│   └── styles/
+│       └── globals.css
 ├── public/
 │   └── favicon.ico
-├── styles/
-│   └── globals.css
 ├── .eslintrc.json
 ├── .gitignore
 ├── next.config.js
