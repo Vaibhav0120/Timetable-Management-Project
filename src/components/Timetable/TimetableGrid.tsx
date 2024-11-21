@@ -1,4 +1,3 @@
-// src/components/Timetable/TimetableGrid.tsx
 import React from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { TimeTableEntry, Day, TimeSlot, Teacher, Subject } from '../../types'
@@ -25,25 +24,23 @@ export const TimetableGrid: React.FC<TimetableGridProps> = ({
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Time Slot</TableHead>
-          {days.map(day => (
-            <TableHead key={day.id}>{day.name}</TableHead>
+          <TableHead>Day</TableHead>
+          {timeSlots.map(slot => (
+            <TableHead key={slot.id}>{`${slot.startTime} - ${slot.endTime}`}</TableHead>
           ))}
         </TableRow>
       </TableHeader>
       <TableBody>
-        {timeSlots.map(slot => (
-          <TableRow key={slot.id}>
-            <TableCell>
-              {`${slot.startTime} - ${slot.endTime}`}
-            </TableCell>
-            {days.map(day => {
+        {days.map(day => (
+          <TableRow key={day.id}>
+            <TableCell>{day.name}</TableCell>
+            {timeSlots.map(slot => {
               const entry = timeTable.find(
                 e => e.timeSlotId === slot.id && e.dayId === day.id
               )
               return (
                 <TimetableCell
-                  key={day.id}
+                  key={slot.id}
                   entry={entry}
                   teachers={teachers}
                   subjects={subjects}
@@ -57,3 +54,4 @@ export const TimetableGrid: React.FC<TimetableGridProps> = ({
     </Table>
   )
 }
+
