@@ -66,6 +66,10 @@ The application employs custom React hooks to manage the state of various entiti
    ```bash
    npm install
    ```
+   ```bash
+   npm install next@latest react@latest react-dom@latest
+   ```
+
 3. **Run the Development Server**
 
    ```bash
