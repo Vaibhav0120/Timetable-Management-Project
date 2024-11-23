@@ -2,6 +2,8 @@
 
 Efficiently manage classes, sections, teachers, and subjects while ensuring conflict-free timetable generation. Built with modern web technologies to provide a seamless user experience.
 
+[Watch It Live](https://timetable-management-project.vercel.app/)
+
 ## 🚀 Features
 
 - 🏫 **Manage Classes and Sections**Add, edit, and delete classes and sections to keep the system organized.
