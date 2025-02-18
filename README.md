@@ -115,6 +115,13 @@ Special thanks to all contributors and open-source libraries that made this proj
 timetable-management/
 ├── src/
 │   ├── app/
+│   │   ├── auth/
+│   │   │   └── callback
+│   │   │       └── route.ts
+│   │   ├── login/
+│   │   │   └── page.tsx
+│   │   ├── signup/
+│   │   │   └── page.tsx
 │   │   ├── layout.tsx
 │   │   └── page.tsx
 │   ├── components/

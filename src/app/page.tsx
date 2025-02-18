@@ -1,10 +1,22 @@
-// src/app/page.tsx
-import { TimetableManagement } from '@/components/TimetableManagement'
+import { redirect } from "next/navigation"
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
+import { cookies } from "next/headers"
+import { TimetableManagement } from "@/components/TimetableManagement"
 
-export default function Home() {
+export default async function Home() {
+  const supabase = createServerComponentClient({ cookies })
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (!session) {
+    redirect("/login")
+  }
+
   return (
     <main className="min-h-screen bg-background">
       <TimetableManagement />
     </main>
   )
 }
+
