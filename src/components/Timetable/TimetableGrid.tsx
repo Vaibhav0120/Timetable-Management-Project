@@ -29,7 +29,7 @@ export const TimetableGrid: React.FC<TimetableGridProps> = ({
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Time / Day</TableHead>
+          <TableHead className="w-24">Time / Day</TableHead>
           {days.map((day) => (
             <TableHead key={day.id}>{day.name}</TableHead>
           ))}
@@ -38,7 +38,7 @@ export const TimetableGrid: React.FC<TimetableGridProps> = ({
       <TableBody>
         {timeSlots.map((slot) => (
           <TableRow key={slot.id}>
-            <TableCell>{`${slot.start_time} - ${slot.end_time}`}</TableCell>
+            <TableCell className="w-24">{`${slot.start_time} - ${slot.end_time}`}</TableCell>
             {days.map((day) => {
               const entry = timeTable.find((e) => e.time_slot_id === slot.id && e.day_id === day.id)
               return (
