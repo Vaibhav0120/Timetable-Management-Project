@@ -21,6 +21,7 @@ Efficiently manage classes, sections, teachers, and subjects while ensuring conf
 - **UI Library:** [React](https://reactjs.org/) + [TypeScript](https://www.typescriptlang.org/)
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/)
 - **UI Components:** [shadcn/ui](https://ui.shadcn.dev/)
+- **eDatabase/Authentication:** [Supabase](https://supabase.com/)
 
 ---
 
