@@ -1,12 +1,11 @@
-// src/components/ClassSection/ClassSectionSelector.tsx
-import React from 'react'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Class } from '../../types'
+import type React from "react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import type { Class } from "../../types"
 
 interface ClassSectionSelectorProps {
   classes: Class[]
-  selectedClass: number | null
-  selectedSection: number | null
+  selectedClass: string | null
+  selectedSection: string | null
   onClassChange: (classId: string) => void
   onSectionChange: (sectionId: string) => void
 }
@@ -16,36 +15,39 @@ export const ClassSectionSelector: React.FC<ClassSectionSelectorProps> = ({
   selectedClass,
   selectedSection,
   onClassChange,
-  onSectionChange
+  onSectionChange,
 }) => {
   return (
     <div className="flex items-center space-x-2">
-      <Select onValueChange={onClassChange} value={selectedClass?.toString()}>
+      <Select onValueChange={onClassChange} value={selectedClass || undefined}>
         <SelectTrigger className="w-[200px]">
           <SelectValue placeholder="Select a class" />
         </SelectTrigger>
         <SelectContent>
-          {classes.map(c => (
-            <SelectItem key={c.id} value={c.id.toString()}>
+          {classes.map((c) => (
+            <SelectItem key={c.id} value={c.id}>
               {c.name}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
       {selectedClass && (
-        <Select onValueChange={onSectionChange} value={selectedSection?.toString() || ""}>
+        <Select onValueChange={onSectionChange} value={selectedSection || undefined}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select a section" />
           </SelectTrigger>
           <SelectContent>
-            {classes.find(c => c.id === selectedClass)?.sections.map(s => (
-              <SelectItem key={s.id} value={s.id.toString()}>
-                {s.name}
-              </SelectItem>
-            ))}
+            {classes
+              .find((c) => c.id === selectedClass)
+              ?.sections.map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.name}
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
       )}
     </div>
   )
 }
+

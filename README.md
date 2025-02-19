@@ -159,8 +159,9 @@ timetable-management/
 │   │   └── index.ts
 │   ├── utils/
 │   │   └── helpers.ts
-│   └── styles/
-│       └── globals.css
+│   ├── styles/
+│   │   └── globals.css
+│   └── middleware.ts
 ├── public/
 │   └── favicon.ico
 ├── .eslintrc.json

@@ -1,33 +1,106 @@
-import { useState, useCallback } from 'react'
-import { Teacher } from '../types'
+"use client"
+
+import { useState, useCallback, useEffect } from "react"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import type { Teacher } from "../types"
 
 export const useTeachers = () => {
-  const [teachers, setTeachers] = useState<Teacher[]>([
-    { id: 1, name: 'Vaibhav', subjectId: 1 },
-    { id: 2, name: 'Anirudh', subjectId: 2 }
-  ])
+  const [teachers, setTeachers] = useState<Teacher[]>([])
+  const supabase = createClientComponentClient()
 
-  const addTeacher = useCallback((name: string, subjectId: number) => {
-    setTeachers(prevTeachers => {
-      const newId = Math.max(...prevTeachers.map(t => t.id), 0) + 1
-      return [...prevTeachers, { id: newId, name: name.trim(), subjectId }]
-    })
-  }, [])
+  const fetchTeachers = useCallback(async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return
 
-  const updateTeacher = useCallback((teacherId: number, name: string, subjectId: number) => {
-    setTeachers(prevTeachers => prevTeachers.map(teacher =>
-      teacher.id === teacherId ? { ...teacher, name, subjectId } : teacher
-    ))
-  }, [])
+    const { data, error } = await supabase.from("teachers").select("*").eq("user_id", user.id)
 
-  const deleteTeacher = useCallback((teacherId: number) => {
-    setTeachers(prevTeachers => prevTeachers.filter(teacher => teacher.id !== teacherId))
-  }, [])
+    if (error) {
+      console.error("Error fetching teachers:", error)
+      return
+    }
+
+    setTeachers(data)
+  }, [supabase])
+
+  useEffect(() => {
+    fetchTeachers()
+  }, [fetchTeachers])
+
+  const addTeacher = useCallback(
+    async (name: string, subject_id: string) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data, error } = await supabase
+        .from("teachers")
+        .insert({ name, subject_id, user_id: user.id })
+        .select()
+        .single()
+
+      if (error) {
+        console.error("Error adding teacher:", error)
+        return
+      }
+
+      setTeachers((prevTeachers) => [...prevTeachers, data])
+    },
+    [supabase],
+  )
+
+  const updateTeacher = useCallback(
+    async (teacherId: string, name: string, subject_id: string) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { error } = await supabase
+        .from("teachers")
+        .update({ name, subject_id })
+        .eq("id", teacherId)
+        .eq("user_id", user.id)
+
+      if (error) {
+        console.error("Error updating teacher:", error)
+        return
+      }
+
+      setTeachers((prevTeachers) =>
+        prevTeachers.map((teacher) => (teacher.id === teacherId ? { ...teacher, name, subject_id } : teacher)),
+      )
+    },
+    [supabase],
+  )
+
+  const deleteTeacher = useCallback(
+    async (teacherId: string) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { error } = await supabase.from("teachers").delete().eq("id", teacherId).eq("user_id", user.id)
+
+      if (error) {
+        console.error("Error deleting teacher:", error)
+        return
+      }
+
+      setTeachers((prevTeachers) => prevTeachers.filter((teacher) => teacher.id !== teacherId))
+    },
+    [supabase],
+  )
 
   return {
     teachers,
     addTeacher,
     updateTeacher,
-    deleteTeacher
+    deleteTeacher,
+    fetchTeachers,
   }
 }
+

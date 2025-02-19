@@ -1,88 +1,209 @@
-import { useState, useCallback } from 'react';
-import { Class, Section } from '../types';
+"use client"
+
+import { useState, useCallback, useEffect } from "react"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import type { Class, Section } from "../types"
 
 export const useClasses = () => {
-  const [classes, setClasses] = useState<Class[]>([
-    { 
-      id: 1, 
-      name: 'Branch CSE', 
-      sections: [
-        { id: 1, name: 'CSE A' },
-        { id: 2, name: 'CSE B' }
-      ] 
-    },
-    { 
-      id: 2, 
-      name: 'Branch AIML', 
-      sections: [
-        { id: 3, name: 'AIML A' }
-      ] 
+  const [classes, setClasses] = useState<Class[]>([])
+  const supabase = createClientComponentClient()
+
+  const fetchClasses = useCallback(async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { data: classesData, error: classesError } = await supabase.from("classes").select("*").eq("user_id", user.id)
+
+    if (classesError) {
+      console.error("Error fetching classes:", classesError)
+      return
     }
-  ]);
 
-  const addClass = useCallback((name: string) => {
-    setClasses(prevClasses => {
-      const newId = Math.max(...prevClasses.map(c => c.id), 0) + 1;
-      return [...prevClasses, { id: newId, name: name.trim(), sections: [] }];
-    });
-  }, []);
+    const { data: sectionsData, error: sectionsError } = await supabase
+      .from("sections")
+      .select("*")
+      .eq("user_id", user.id)
 
-  const updateClass = useCallback((updatedClass: Class) => {
-    setClasses(prevClasses =>
-      prevClasses.map(c => (c.id === updatedClass.id ? updatedClass : c))
-    );
-  }, []);
+    if (sectionsError) {
+      console.error("Error fetching sections:", sectionsError)
+      return
+    }
 
-  const deleteClass = useCallback((classId: number) => {
-    setClasses(prevClasses => prevClasses.filter(c => c.id !== classId));
-  }, []);
+    const classesWithSections = classesData.map((cls: Class) => ({
+      ...cls,
+      sections: sectionsData.filter((section: Section) => section.class_id === cls.id),
+    }))
 
-  const addSection = useCallback((classId: number, sectionName: string) => {
-    setClasses(prevClasses =>
-      prevClasses.map(c => {
-        if (c.id === classId) {
-          const newSectionId = c.sections.length > 0 
-            ? Math.max(...c.sections.map(s => s.id)) + 1 
-            : 1;
-          return {
-            ...c,
-            sections: [...c.sections, { id: newSectionId, name: sectionName.trim() }]
-          };
-        }
-        return c;
-      })
-    );
-  }, []);
+    setClasses(classesWithSections)
+  }, [supabase])
 
-  const updateSection = useCallback((classId: number, updatedSection: Section) => {
-    setClasses(prevClasses =>
-      prevClasses.map(c => {
-        if (c.id === classId) {
-          return {
-            ...c,
-            sections: c.sections.map(s =>
-              s.id === updatedSection.id ? updatedSection : s
-            )
-          };
-        }
-        return c;
-      })
-    );
-  }, []);
+  useEffect(() => {
+    fetchClasses()
+  }, [fetchClasses])
 
-  const deleteSection = useCallback((classId: number, sectionId: number) => {
-    setClasses(prevClasses =>
-      prevClasses.map(c => {
-        if (c.id === classId) {
-          return {
-            ...c,
-            sections: c.sections.filter(s => s.id !== sectionId)
-          };
-        }
-        return c;
-      })
-    );
-  }, []);
+  const addClass = useCallback(
+    async (name: string) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data, error } = await supabase.from("classes").insert({ name, user_id: user.id }).select().single()
+
+      if (error) {
+        console.error("Error adding class:", error)
+        return
+      }
+
+      setClasses((prevClasses) => [...prevClasses, { ...data, sections: [] }])
+    },
+    [supabase],
+  )
+
+  const updateClass = useCallback(
+    async (updatedClass: Class) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { error } = await supabase
+        .from("classes")
+        .update({ name: updatedClass.name })
+        .eq("id", updatedClass.id)
+        .eq("user_id", user.id)
+
+      if (error) {
+        console.error("Error updating class:", error)
+        return
+      }
+
+      setClasses((prevClasses) => prevClasses.map((c) => (c.id === updatedClass.id ? updatedClass : c)))
+    },
+    [supabase],
+  )
+
+  const deleteClass = useCallback(
+    async (classId: string) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { error } = await supabase.from("classes").delete().eq("id", classId).eq("user_id", user.id)
+
+      if (error) {
+        console.error("Error deleting class:", error)
+        return
+      }
+
+      setClasses((prevClasses) => prevClasses.filter((c) => c.id !== classId))
+    },
+    [supabase],
+  )
+
+  const addSection = useCallback(
+    async (classId: string, sectionName: string) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data, error } = await supabase
+        .from("sections")
+        .insert({ name: sectionName, class_id: classId, user_id: user.id })
+        .select()
+        .single()
+
+      if (error) {
+        console.error("Error adding section:", error)
+        return
+      }
+
+      setClasses((prevClasses) =>
+        prevClasses.map((c) => {
+          if (c.id === classId) {
+            return {
+              ...c,
+              sections: [...c.sections, data],
+            }
+          }
+          return c
+        }),
+      )
+    },
+    [supabase],
+  )
+
+  const updateSection = useCallback(
+    async (classId: string, updatedSection: Section) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { error } = await supabase
+        .from("sections")
+        .update({ name: updatedSection.name })
+        .eq("id", updatedSection.id)
+        .eq("class_id", classId)
+        .eq("user_id", user.id)
+
+      if (error) {
+        console.error("Error updating section:", error)
+        return
+      }
+
+      setClasses((prevClasses) =>
+        prevClasses.map((c) => {
+          if (c.id === classId) {
+            return {
+              ...c,
+              sections: c.sections.map((s) => (s.id === updatedSection.id ? updatedSection : s)),
+            }
+          }
+          return c
+        }),
+      )
+    },
+    [supabase],
+  )
+
+  const deleteSection = useCallback(
+    async (classId: string, sectionId: string) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { error } = await supabase
+        .from("sections")
+        .delete()
+        .eq("id", sectionId)
+        .eq("class_id", classId)
+        .eq("user_id", user.id)
+
+      if (error) {
+        console.error("Error deleting section:", error)
+        return
+      }
+
+      setClasses((prevClasses) =>
+        prevClasses.map((c) => {
+          if (c.id === classId) {
+            return {
+              ...c,
+              sections: c.sections.filter((s) => s.id !== sectionId),
+            }
+          }
+          return c
+        }),
+      )
+    },
+    [supabase],
+  )
 
   return {
     classes,
@@ -91,6 +212,8 @@ export const useClasses = () => {
     deleteClass,
     addSection,
     updateSection,
-    deleteSection
-  };
-};
+    deleteSection,
+    fetchClasses,
+  }
+}
+

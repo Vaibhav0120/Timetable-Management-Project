@@ -1,40 +1,134 @@
-import { useState, useCallback } from 'react'
-import { TimeSlot } from '../types'
+"use client"
+
+import { useState, useCallback, useEffect } from "react"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import type { TimeSlot } from "../types"
 
 export const useTimeSlots = () => {
-  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([
-    { id: 1, startTime: '09:05', endTime: '09:55' },
-    { id: 2, startTime: '09:55', endTime: '10:45' },
-    { id: 3, startTime: '10:45', endTime: '11:35' },
-    { id: 4, startTime: '11:35', endTime: '12:25' },
-    { id: 5, startTime: '12:25', endTime: '13:15' },
-    { id: 6, startTime: '13:15', endTime: '14:05' },
-    { id: 7, startTime: '14:05', endTime: '15:00' },
-    { id: 8, startTime: '15:00', endTime: '15:55' },
-    { id: 9, startTime: '15:55', endTime: '16:50' }
-  ])
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([])
+  const supabase = createClientComponentClient()
 
-  const addTimeSlot = useCallback((startTime: string, endTime: string) => {
-    setTimeSlots(prevTimeSlots => {
-      const newId = Math.max(...prevTimeSlots.map(t => t.id), 0) + 1
-      return [...prevTimeSlots, { id: newId, startTime, endTime }]
-    })
-  }, [])
+  const fetchTimeSlots = useCallback(async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return
 
-  const updateTimeSlot = useCallback((updatedTimeSlot: TimeSlot) => {
-    setTimeSlots(prevTimeSlots => prevTimeSlots.map(slot =>
-      slot.id === updatedTimeSlot.id ? updatedTimeSlot : slot
-    ))
-  }, [])
+    const { data, error } = await supabase.from("timeslots").select("*").eq("user_id", user.id)
 
-  const deleteTimeSlot = useCallback((id: number) => {
-    setTimeSlots(prevTimeSlots => prevTimeSlots.filter(slot => slot.id !== id))
-  }, [])
+    if (error) {
+      console.error("Error fetching time slots:", error)
+      return
+    }
+
+    setTimeSlots(
+      data.map((slot) => ({
+        ...slot,
+        start_time: formatTime(slot.start_time),
+        end_time: formatTime(slot.end_time),
+      })),
+    )
+  }, [supabase])
+
+  useEffect(() => {
+    fetchTimeSlots()
+  }, [fetchTimeSlots])
+
+  const addTimeSlot = useCallback(
+    async (start_time: string, end_time: string) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data, error } = await supabase
+        .from("timeslots")
+        .insert({ start_time: formatTimeForDB(start_time), end_time: formatTimeForDB(end_time), user_id: user.id })
+        .select()
+        .single()
+
+      if (error) {
+        console.error("Error adding time slot:", error)
+        return
+      }
+
+      setTimeSlots((prevTimeSlots) => [
+        ...prevTimeSlots,
+        {
+          ...data,
+          start_time: formatTime(data.start_time),
+          end_time: formatTime(data.end_time),
+        },
+      ])
+    },
+    [supabase],
+  )
+
+  const updateTimeSlot = useCallback(
+    async (timeSlotId: string, start_time: string, end_time: string) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { error } = await supabase
+        .from("timeslots")
+        .update({ start_time: formatTimeForDB(start_time), end_time: formatTimeForDB(end_time) })
+        .eq("id", timeSlotId)
+        .eq("user_id", user.id)
+
+      if (error) {
+        console.error("Error updating time slot:", error)
+        return
+      }
+
+      setTimeSlots((prevTimeSlots) =>
+        prevTimeSlots.map((timeSlot) =>
+          timeSlot.id === timeSlotId
+            ? { ...timeSlot, start_time: formatTime(start_time), end_time: formatTime(end_time) }
+            : timeSlot,
+        ),
+      )
+    },
+    [supabase],
+  )
+
+  const deleteTimeSlot = useCallback(
+    async (timeSlotId: string) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { error } = await supabase.from("timeslots").delete().eq("id", timeSlotId).eq("user_id", user.id)
+
+      if (error) {
+        console.error("Error deleting time slot:", error)
+        return
+      }
+
+      setTimeSlots((prevTimeSlots) => prevTimeSlots.filter((timeSlot) => timeSlot.id !== timeSlotId))
+    },
+    [supabase],
+  )
+
+  const formatTime = (time: string) => {
+    const [hours, minutes] = time.split(":")
+    const date = new Date(2000, 0, 1, Number.parseInt(hours), Number.parseInt(minutes))
+    return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+  }
+
+  const formatTimeForDB = (time: string) => {
+    const [hours, minutes] = time.split(":")
+    return `${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}:00`
+  }
 
   return {
     timeSlots,
     addTimeSlot,
     updateTimeSlot,
-    deleteTimeSlot
+    deleteTimeSlot,
+    fetchTimeSlots,
   }
 }
+
