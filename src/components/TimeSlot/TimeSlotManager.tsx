@@ -12,6 +12,7 @@ interface TimeSlotManagerProps {
   addTimeSlot: (start_time: string, end_time: string) => Promise<void>
   updateTimeSlot: (timeSlotId: string, start_time: string, end_time: string) => Promise<void>
   deleteTimeSlot: (timeSlotId: string) => Promise<void>
+  onEditTimeSlot: (timeSlot: TimeSlot) => void
 }
 
 export const TimeSlotManager: React.FC<TimeSlotManagerProps> = ({
@@ -19,12 +20,22 @@ export const TimeSlotManager: React.FC<TimeSlotManagerProps> = ({
   addTimeSlot,
   updateTimeSlot,
   deleteTimeSlot,
+  onEditTimeSlot,
 }) => {
   const [newStartTime, setNewStartTime] = useState("")
   const [newEndTime, setNewEndTime] = useState("")
 
   const handleAddTimeSlot = async () => {
-    await addTimeSlot(newStartTime, newEndTime)
+    // Convert from "HH:mm" to "hh:mm AM/PM" for database
+    const convert24To12 = (time24: string) => {
+      const [hours, minutes] = time24.split(":")
+      const hour = Number.parseInt(hours)
+      const ampm = hour >= 12 ? "PM" : "AM"
+      const hour12 = hour % 12 || 12
+      return `${hour12}:${minutes} ${ampm}`
+    }
+
+    await addTimeSlot(convert24To12(newStartTime), convert24To12(newEndTime))
     setNewStartTime("")
     setNewEndTime("")
   }
@@ -60,11 +71,7 @@ export const TimeSlotManager: React.FC<TimeSlotManagerProps> = ({
               <TableCell>{timeSlot.start_time}</TableCell>
               <TableCell>{timeSlot.end_time}</TableCell>
               <TableCell>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => updateTimeSlot(timeSlot.id, timeSlot.start_time, timeSlot.end_time)}
-                >
+                <Button variant="outline" size="sm" onClick={() => onEditTimeSlot(timeSlot)}>
                   Edit
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => deleteTimeSlot(timeSlot.id)} className="ml-2">

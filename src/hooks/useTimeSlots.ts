@@ -22,13 +22,9 @@ export const useTimeSlots = () => {
         return
       }
 
-      setTimeSlots(
-        data.map((slot) => ({
-          ...slot,
-          start_time: formatTime(slot.start_time),
-          end_time: formatTime(slot.end_time),
-        })),
-      )
+      // Data is already in 12-hour format from database
+      console.log("Time slots from DB:", data)
+      setTimeSlots(data)
     } catch (error) {
       console.error("Error fetching time slots:", error)
     }
@@ -46,9 +42,15 @@ export const useTimeSlots = () => {
       if (!user) return
 
       try {
+        // Format time to ensure consistent format (hh:mm AM/PM)
+        const formattedStartTime = formatTime12Hour(start_time)
+        const formattedEndTime = formatTime12Hour(end_time)
+
+        console.log("Adding time slot:", { formattedStartTime, formattedEndTime })
+
         const { data, error } = await supabase
           .from("timeslots")
-          .insert({ start_time: formatTimeForDB(start_time), end_time: formatTimeForDB(end_time), user_id: user.id })
+          .insert({ start_time: formattedStartTime, end_time: formattedEndTime, user_id: user.id })
           .select()
           .single()
 
@@ -57,14 +59,7 @@ export const useTimeSlots = () => {
           return
         }
 
-        setTimeSlots((prevTimeSlots) => [
-          ...prevTimeSlots,
-          {
-            ...data,
-            start_time: formatTime(data.start_time),
-            end_time: formatTime(data.end_time),
-          },
-        ])
+        setTimeSlots((prevTimeSlots) => [...prevTimeSlots, data])
       } catch (error) {
         console.error("Error adding time slot:", error)
       }
@@ -80,9 +75,15 @@ export const useTimeSlots = () => {
       if (!user) return
 
       try {
+        // Format time to ensure consistent format (hh:mm AM/PM)
+        const formattedStartTime = formatTime12Hour(start_time)
+        const formattedEndTime = formatTime12Hour(end_time)
+
+        console.log("Updating time slot:", { id: timeSlotId, formattedStartTime, formattedEndTime })
+
         const { error } = await supabase
           .from("timeslots")
-          .update({ start_time: formatTimeForDB(start_time), end_time: formatTimeForDB(end_time) })
+          .update({ start_time: formattedStartTime, end_time: formattedEndTime })
           .eq("id", timeSlotId)
           .eq("user_id", user.id)
 
@@ -94,7 +95,7 @@ export const useTimeSlots = () => {
         setTimeSlots((prevTimeSlots) =>
           prevTimeSlots.map((timeSlot) =>
             timeSlot.id === timeSlotId
-              ? { ...timeSlot, start_time: formatTime(start_time), end_time: formatTime(end_time) }
+              ? { ...timeSlot, start_time: formattedStartTime, end_time: formattedEndTime }
               : timeSlot,
           ),
         )
@@ -128,15 +129,24 @@ export const useTimeSlots = () => {
     [supabase],
   )
 
-  const formatTime = (time: string) => {
-    const [hours, minutes] = time.split(":")
-    const date = new Date(2000, 0, 1, Number.parseInt(hours), Number.parseInt(minutes))
-    return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
-  }
+  // Helper function to ensure consistent 12-hour time format (hh:mm AM/PM)
+  const formatTime12Hour = (time: string) => {
+    try {
+      // If time is already in correct format, return it
+      if (/^(0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$/.test(time)) {
+        return time
+      }
 
-  const formatTimeForDB = (time: string) => {
-    const [hours, minutes] = time.split(":")
-    return `${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}:00`
+      // If time is in HTML input format (HH:mm), convert it to 12-hour format
+      const [hours, minutes] = time.split(":")
+      const hour = Number.parseInt(hours)
+      const ampm = hour >= 12 ? "PM" : "AM"
+      const hour12 = hour % 12 || 12
+      return `${hour12}:${minutes} ${ampm}`
+    } catch (error) {
+      console.error("Error formatting time:", error)
+      return time
+    }
   }
 
   return {

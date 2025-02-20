@@ -248,7 +248,6 @@ export const TimetableManagement: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
-      <TimeSlotEditor timeSlot={editingTimeSlot} onUpdate={updateTimeSlot} onClose={() => setEditingTimeSlot(null)} />
       <Dialog open={isManagingTimeSlots} onOpenChange={setIsManagingTimeSlots}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
@@ -260,10 +259,12 @@ export const TimetableManagement: React.FC = () => {
               addTimeSlot={addTimeSlot}
               updateTimeSlot={updateTimeSlot}
               deleteTimeSlot={deleteTimeSlot}
+              onEditTimeSlot={(timeSlot) => setEditingTimeSlot(timeSlot)}
             />
           </div>
         </DialogContent>
       </Dialog>
+      <TimeSlotEditor timeSlot={editingTimeSlot} onUpdate={updateTimeSlot} onClose={() => setEditingTimeSlot(null)} />
       <Dialog open={isManagingTeachersSubjects} onOpenChange={setIsManagingTeachersSubjects}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
