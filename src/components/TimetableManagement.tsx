@@ -1,6 +1,5 @@
 "use client"
 
-import type React from "react"
 import { useState, useCallback, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -31,7 +30,7 @@ const days: Day[] = [
   { id: 5, name: "Friday" },
 ]
 
-export const TimetableManagement: React.FC = () => {
+export const TimetableManagement = () => {
   const { toast } = useToast()
   const router = useRouter()
   const supabase = createClientComponentClient()
@@ -42,14 +41,14 @@ export const TimetableManagement: React.FC = () => {
   const [editingTimeSlot, setEditingTimeSlot] = useState<TimeSlot | null>(null)
   const [isManagingTimeSlots, setIsManagingTimeSlots] = useState(false)
   const [isManagingTeachersSubjects, setIsManagingTeachersSubjects] = useState(false)
-  const [teacherChangeError, setTeacherChangeError] = useState<string | null>(null)
 
   const { classes, addClass, updateClass, deleteClass, addSection, updateSection, deleteSection, fetchClasses } =
     useClasses()
   const { teachers, addTeacher, updateTeacher, deleteTeacher, fetchTeachers } = useTeachers()
   const { subjects, addSubject, updateSubject, deleteSubject, fetchSubjects } = useSubjects()
   const { timeSlots, addTimeSlot, updateTimeSlot, deleteTimeSlot, fetchTimeSlots } = useTimeSlots()
-  const { timeTable, fetchTimetable, initializeTimeTable, updateTeacherInTimeTable } = useTimetable()
+  const { timeTable, isLoading, initializeTimeTable, fetchTimetable, updateTeacherInTimeTable, clearTimeTable } =
+    useTimetable()
 
   useEffect(() => {
     fetchClasses()
@@ -58,19 +57,23 @@ export const TimetableManagement: React.FC = () => {
     fetchTimeSlots()
   }, [fetchClasses, fetchTeachers, fetchSubjects, fetchTimeSlots])
 
-  const handleClassChange = useCallback((classId: string) => {
-    setSelectedClass(classId)
-    setSelectedSection(null)
-  }, [])
+  const handleClassChange = useCallback(
+    (classId: string) => {
+      clearTimeTable()
+      setSelectedClass(classId)
+      setSelectedSection(null)
+    },
+    [clearTimeTable],
+  )
 
   const handleSectionChange = useCallback(
-    (sectionId: string) => {
+    async (sectionId: string) => {
+      if (!selectedClass) return
       setSelectedSection(sectionId)
-      if (selectedClass !== null) {
-        initializeTimeTable(selectedClass, sectionId, days, timeSlots)
-      }
+      await initializeTimeTable(selectedClass, sectionId, days, timeSlots)
+      await fetchTimetable(selectedClass, sectionId)
     },
-    [selectedClass, initializeTimeTable, timeSlots],
+    [selectedClass, initializeTimeTable, fetchTimetable, timeSlots],
   )
 
   const handleCellClick = useCallback((entry: TimeTableEntry) => {
@@ -79,7 +82,7 @@ export const TimetableManagement: React.FC = () => {
 
   const handleTeacherChange = useCallback(
     async (newTeacherId: string) => {
-      if (selectedCell && selectedClass !== null && selectedSection !== null) {
+      if (selectedCell && selectedClass && selectedSection) {
         const teacher = teachers.find((t) => t.id === newTeacherId)
         if (!teacher) {
           console.error("Teacher not found")
@@ -183,16 +186,22 @@ export const TimetableManagement: React.FC = () => {
         />
         <Button onClick={() => setIsManagingClasses(true)}>Manage Classes</Button>
       </div>
-      {selectedClass && selectedSection && (
-        <TimetableGrid
-          timeTable={timeTable}
-          days={days}
-          timeSlots={timeSlots}
-          teachers={teachers}
-          subjects={subjects}
-          onCellClick={handleCellClick}
-        />
-      )}
+      {selectedClass &&
+        selectedSection &&
+        (isLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          <TimetableGrid
+            timeTable={timeTable}
+            days={days}
+            timeSlots={timeSlots}
+            teachers={teachers}
+            subjects={subjects}
+            onCellClick={handleCellClick}
+          />
+        ))}
       {selectedClass && selectedSection && (
         <div className="mt-4 flex space-x-2">
           <Button onClick={() => setIsManagingTeachersSubjects(true)}>Manage Teachers and Subjects</Button>
@@ -204,7 +213,6 @@ export const TimetableManagement: React.FC = () => {
         onOpenChange={(open) => {
           if (!open) {
             setSelectedCell(null)
-            setTeacherChangeError(null)
           }
         }}
       >
@@ -214,7 +222,7 @@ export const TimetableManagement: React.FC = () => {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <Label htmlFor="teacher">Select Teacher</Label>
-            <Select onValueChange={(value) => handleTeacherChange(value)}>
+            <Select onValueChange={handleTeacherChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a teacher" />
               </SelectTrigger>
@@ -226,7 +234,6 @@ export const TimetableManagement: React.FC = () => {
                 ))}
               </SelectContent>
             </Select>
-            {teacherChangeError && <p className="text-red-500 text-sm mt-2">{teacherChangeError}</p>}
           </div>
         </DialogContent>
       </Dialog>

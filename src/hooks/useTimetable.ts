@@ -6,50 +6,79 @@ import type { Day, TimeSlot, TimeTableEntry } from "../types"
 
 export const useTimetable = () => {
   const [timeTable, setTimeTable] = useState<TimeTableEntry[]>([])
+  const [isLoading, setIsLoading] = useState(false)
   const supabase = createClientComponentClient()
 
   const initializeTimeTable = useCallback(
     async (classId: string, sectionId: string, days: Day[], timeSlots: TimeSlot[]) => {
+      setIsLoading(true)
       const {
         data: { user },
       } = await supabase.auth.getUser()
       if (!user) {
         console.error("User not authenticated")
+        setIsLoading(false)
         return
       }
 
-      const emptyTimetable = days.flatMap((day) =>
-        timeSlots.map((timeSlot) => ({
-          user_id: user.id,
-          class_id: classId,
-          section_id: sectionId,
-          day_id: day.id,
-          time_slot_id: timeSlot.id,
-          teacher_id: null,
-          subject_id: null,
-        })),
-      )
-
       try {
+        // First, fetch existing entries
+        const { data: existingEntries, error: fetchError } = await supabase
+          .from("timetableentries")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("class_id", classId)
+          .eq("section_id", sectionId)
+
+        if (fetchError) {
+          console.error("Error fetching existing entries:", fetchError)
+          setIsLoading(false)
+          return
+        }
+
+        // Create map of existing entries for quick lookup
+        const existingEntriesMap = new Map(
+          existingEntries?.map((entry) => [`${entry.day_id}-${entry.time_slot_id}`, entry]),
+        )
+
+        // Create or update entries
+        const entriesToUpsert = days.flatMap((day) =>
+          timeSlots.map((timeSlot) => {
+            const key = `${day.id}-${timeSlot.id}`
+            const existing = existingEntriesMap.get(key)
+            return {
+              user_id: user.id,
+              class_id: classId,
+              section_id: sectionId,
+              day_id: day.id,
+              time_slot_id: timeSlot.id,
+              teacher_id: existing?.teacher_id || null,
+              subject_id: existing?.subject_id || null,
+            }
+          }),
+        )
+
         const { data, error } = await supabase
           .from("timetableentries")
-          .upsert(emptyTimetable, {
+          .upsert(entriesToUpsert, {
             onConflict: "user_id,class_id,section_id,day_id,time_slot_id",
-            ignoreDuplicates: true,
           })
           .select()
 
         if (error) {
           console.error("Error initializing timetable:", error)
-          console.error("Error details:", JSON.stringify(error, null, 2))
+          setIsLoading(false)
           return
         }
 
-        console.log("Timetable initialized successfully:", data)
         setTimeTable(data || [])
+
+        // Fetch the timetable after initialization to ensure we have the latest data
+        await fetchTimetable(classId, sectionId)
       } catch (error) {
         console.error("Unexpected error initializing timetable:", error)
-        console.error("Error details:", JSON.stringify(error, null, 2))
+      } finally {
+        setIsLoading(false)
       }
     },
     [supabase],
@@ -57,11 +86,13 @@ export const useTimetable = () => {
 
   const fetchTimetable = useCallback(
     async (classId: string, sectionId: string) => {
+      setIsLoading(true)
       const {
         data: { user },
       } = await supabase.auth.getUser()
       if (!user) {
         console.error("User not authenticated")
+        setIsLoading(false)
         return
       }
 
@@ -75,15 +106,15 @@ export const useTimetable = () => {
 
         if (error) {
           console.error("Error fetching timetable:", error)
-          console.error("Error details:", JSON.stringify(error, null, 2))
+          setIsLoading(false)
           return
         }
 
-        console.log("Timetable fetched successfully:", data)
         setTimeTable(data || [])
       } catch (error) {
         console.error("Unexpected error fetching timetable:", error)
-        console.error("Error details:", JSON.stringify(error, null, 2))
+      } finally {
+        setIsLoading(false)
       }
     },
     [supabase],
@@ -98,11 +129,13 @@ export const useTimetable = () => {
       timeSlotId: string,
       dayId: number,
     ) => {
+      setIsLoading(true)
       const {
         data: { user },
       } = await supabase.auth.getUser()
       if (!user) {
         console.error("User not authenticated")
+        setIsLoading(false)
         return
       }
 
@@ -126,11 +159,11 @@ export const useTimetable = () => {
 
         if (error) {
           console.error("Error updating teacher in timetable:", error)
-          console.error("Error details:", JSON.stringify(error, null, 2))
+          setIsLoading(false)
           return
         }
 
-        console.log("Teacher updated in timetable successfully:", data)
+        // Update the local state
         setTimeTable((prevTimeTable) =>
           prevTimeTable.map((entry) =>
             entry.class_id === classId &&
@@ -141,14 +174,29 @@ export const useTimetable = () => {
               : entry,
           ),
         )
+
+        // Fetch the latest data to ensure consistency
+        await fetchTimetable(classId, sectionId)
       } catch (error) {
         console.error("Unexpected error updating teacher in timetable:", error)
-        console.error("Error details:", JSON.stringify(error, null, 2))
+      } finally {
+        setIsLoading(false)
       }
     },
-    [supabase],
+    [supabase, fetchTimetable],
   )
 
-  return { timeTable, initializeTimeTable, fetchTimetable, updateTeacherInTimeTable }
+  const clearTimeTable = useCallback(() => {
+    setTimeTable([])
+  }, [])
+
+  return {
+    timeTable,
+    isLoading,
+    initializeTimeTable,
+    fetchTimetable,
+    updateTeacherInTimeTable,
+    clearTimeTable,
+  }
 }
 
