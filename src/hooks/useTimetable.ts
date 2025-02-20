@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useState, useCallback } from "react"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import type { Day, TimeSlot, TimeTableEntry } from "../types"
 
@@ -13,11 +13,13 @@ export const useTimetable = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        console.error("User not authenticated")
+        return
+      }
 
       const emptyTimetable = days.flatMap((day) =>
         timeSlots.map((timeSlot) => ({
-          id: `${classId}-${sectionId}-${day.id}-${timeSlot.id}`,
           user_id: user.id,
           class_id: classId,
           section_id: sectionId,
@@ -31,17 +33,23 @@ export const useTimetable = () => {
       try {
         const { data, error } = await supabase
           .from("timetableentries")
-          .upsert(emptyTimetable, { onConflict: "user_id,class_id,section_id,day_id,time_slot_id" })
+          .upsert(emptyTimetable, {
+            onConflict: "user_id,class_id,section_id,day_id,time_slot_id",
+            ignoreDuplicates: true,
+          })
           .select()
 
         if (error) {
           console.error("Error initializing timetable:", error)
+          console.error("Error details:", JSON.stringify(error, null, 2))
           return
         }
 
+        console.log("Timetable initialized successfully:", data)
         setTimeTable(data || [])
       } catch (error) {
-        console.error("Error initializing timetable:", error)
+        console.error("Unexpected error initializing timetable:", error)
+        console.error("Error details:", JSON.stringify(error, null, 2))
       }
     },
     [supabase],
@@ -52,7 +60,10 @@ export const useTimetable = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        console.error("User not authenticated")
+        return
+      }
 
       try {
         const { data, error } = await supabase
@@ -64,12 +75,15 @@ export const useTimetable = () => {
 
         if (error) {
           console.error("Error fetching timetable:", error)
+          console.error("Error details:", JSON.stringify(error, null, 2))
           return
         }
 
+        console.log("Timetable fetched successfully:", data)
         setTimeTable(data || [])
       } catch (error) {
-        console.error("Error fetching timetable:", error)
+        console.error("Unexpected error fetching timetable:", error)
+        console.error("Error details:", JSON.stringify(error, null, 2))
       }
     },
     [supabase],
@@ -87,14 +101,16 @@ export const useTimetable = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        console.error("User not authenticated")
+        return
+      }
 
       try {
         const { data, error } = await supabase
           .from("timetableentries")
           .upsert(
             {
-              id: `${classId}-${sectionId}-${dayId}-${timeSlotId}`,
               user_id: user.id,
               class_id: classId,
               section_id: sectionId,
@@ -110,9 +126,11 @@ export const useTimetable = () => {
 
         if (error) {
           console.error("Error updating teacher in timetable:", error)
+          console.error("Error details:", JSON.stringify(error, null, 2))
           return
         }
 
+        console.log("Teacher updated in timetable successfully:", data)
         setTimeTable((prevTimeTable) =>
           prevTimeTable.map((entry) =>
             entry.class_id === classId &&
@@ -124,7 +142,8 @@ export const useTimetable = () => {
           ),
         )
       } catch (error) {
-        console.error("Error updating teacher in timetable:", error)
+        console.error("Unexpected error updating teacher in timetable:", error)
+        console.error("Error details:", JSON.stringify(error, null, 2))
       }
     },
     [supabase],
