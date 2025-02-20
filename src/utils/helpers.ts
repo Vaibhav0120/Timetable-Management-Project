@@ -1,18 +1,24 @@
-import { TimeTableEntry, Day, TimeSlot, Teacher, Subject } from '../types'
+import type { TimeTableEntry, Day, TimeSlot, Teacher, Subject } from "../types"
 
-export const generateEmptyTimetable = (classId: number, sectionId: number, days: Day[], timeSlots: TimeSlot[]): TimeTableEntry[] => {
+export const generateEmptyTimetable = (
+  classId: string,
+  sectionId: string,
+  days: Day[],
+  timeSlots: TimeSlot[],
+): TimeTableEntry[] => {
   const emptyTimetable: TimeTableEntry[] = []
-  let timeTableId = 1
 
-  days.forEach(day => {
-    timeSlots.forEach(slot => {
+  days.forEach((day) => {
+    timeSlots.forEach((slot) => {
       emptyTimetable.push({
-        timeTableId: timeTableId++,
-        teacherId: 0,
-        classId: classId,
-        sectionId: sectionId,
-        timeSlotId: slot.id,
-        dayId: day.id,
+        id: `${classId}-${sectionId}-${day.id}-${slot.id}`,
+        user_id: "", // This should be set when creating the actual entry
+        class_id: classId,
+        section_id: sectionId,
+        teacher_id: null,
+        subject_id: null,
+        time_slot_id: slot.id,
+        day_id: day.id,
       })
     })
   })
@@ -20,30 +26,31 @@ export const generateEmptyTimetable = (classId: number, sectionId: number, days:
   return emptyTimetable
 }
 
-export const getTeacherName = (teacherId: number, teachers: Teacher[]): string => {
-  return teachers.find(t => t.id === teacherId)?.name || ''
+export const getTeacherName = (teacherId: string | null, teachers: Teacher[]): string => {
+  return teachers.find((t) => t.id === teacherId)?.name || ""
 }
 
-export const getSubjectName = (teacherId: number, teachers: Teacher[], subjects: Subject[]): string => {
-  const teacher = teachers.find(t => t.id === teacherId)
-  return subjects.find(s => s.id === teacher?.subjectId)?.name || ''
+export const getSubjectName = (subjectId: string | null, subjects: Subject[]): string => {
+  return subjects.find((s) => s.id === subjectId)?.name || ""
 }
 
 export const checkConflictsAcrossTimeTables = (
-  teacherId: number,
-  timeSlotId: number,
+  teacherId: string,
+  timeSlotId: string,
   dayId: number,
-  currentClassId: number,
-  currentSectionId: number,
-  savedTimeTables: { [key: string]: TimeTableEntry[] }
+  currentClassId: string,
+  currentSectionId: string,
+  savedTimeTables: { [key: string]: TimeTableEntry[] },
 ): boolean => {
   return Object.entries(savedTimeTables).some(([key, savedTimeTable]) => {
-    const [classId, sectionId] = key.split('-').map(Number)
-    return savedTimeTable.some(entry =>
-      entry.teacherId === teacherId &&
-      entry.timeSlotId === timeSlotId &&
-      entry.dayId === dayId &&
-      (classId !== currentClassId || sectionId !== currentSectionId)
+    const [classId, sectionId] = key.split("-")
+    return savedTimeTable.some(
+      (entry) =>
+        entry.teacher_id === teacherId &&
+        entry.time_slot_id === timeSlotId &&
+        entry.day_id === dayId &&
+        (classId !== currentClassId || sectionId !== currentSectionId),
     )
   })
 }
+

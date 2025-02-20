@@ -1,8 +1,6 @@
-// src/components/Timetable/TimetableCell.tsx
-import React from 'react'
-import { TableCell } from '@/components/ui/table'
-import { TimeTableEntry, Teacher, Subject } from '../../types'
-import { getTeacherName, getSubjectName } from '../../utils/helpers'
+import type React from "react"
+import { TableCell } from "@/components/ui/table"
+import type { TimeTableEntry, Teacher, Subject } from "../../types"
 
 interface TimetableCellProps {
   entry: TimeTableEntry | undefined
@@ -12,16 +10,25 @@ interface TimetableCellProps {
 }
 
 export const TimetableCell: React.FC<TimetableCellProps> = ({ entry, teachers, subjects, onClick }) => {
+  const getTeacherName = (teacherId: string | null) => {
+    return teachers.find((t) => t.id === teacherId)?.name || ""
+  }
+
+  const getSubjectName = (subjectId: string | null) => {
+    return subjects.find((s) => s.id === subjectId)?.name || ""
+  }
+
   return (
     <TableCell className="cursor-pointer hover:bg-gray-100" onClick={onClick}>
-      {entry && entry.teacherId !== 0 ? (
+      {entry && entry.teacher_id ? (
         <>
-          <div>{getSubjectName(entry.teacherId, teachers, subjects)}</div>
-          <div>{getTeacherName(entry.teacherId, teachers)}</div>
+          <div>{getSubjectName(entry.subject_id)}</div>
+          <div>{getTeacherName(entry.teacher_id)}</div>
         </>
       ) : (
-        '-'
+        "-"
       )}
     </TableCell>
   )
 }
+
