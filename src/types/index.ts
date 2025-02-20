@@ -1,33 +1,33 @@
 export type Teacher = {
-  id: string
-  user_id: string
+  id: string  // UUID
+  user_id: string  // UUID
   name: string
-  subject_id: string
+  subject_id: string  // UUID
 }
 
 export type Subject = {
-  id: string
-  user_id: string
+  id: string  // UUID
+  user_id: string  // UUID
   name: string
 }
 
 export type Section = {
-  id: string
-  user_id: string
+  id: string  // UUID
+  user_id: string  // UUID
   name: string
-  class_id: string
+  class_id: string  // UUID
 }
 
 export type Class = {
-  id: string
-  user_id: string
+  id: string  // UUID
+  user_id: string  // UUID
   name: string
-  sections: Section[]
+  sections: Section[]  // UUID
 }
 
 export type TimeSlot = {
-  id: string
-  user_id: string
+  id: string  // UUID
+  user_id: string  // UUID
   start_time: string
   end_time: string
 }
@@ -38,13 +38,13 @@ export type Day = {
 }
 
 export type TimeTableEntry = {
-  id: string
-  user_id: string
-  teacher_id: string | null
-  class_id: string
-  section_id: string
-  subject_id: string | null
-  time_slot_id: string
+  id: string  // UUID
+  user_id: string  // UUID
+  teacher_id: string | null  // UUID
+  class_id: string  // UUID
+  section_id: string  // UUID
+  subject_id: string | null // UUID
+  time_slot_id: string  // UUID
   day_id: number
 }
 
