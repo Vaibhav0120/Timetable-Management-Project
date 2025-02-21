@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useToast } from "@/components/ui/use-toast"
-import { LogOut, Save } from "lucide-react"
+import { LogOut } from "lucide-react"
 import { ClassSectionSelector } from "./ClassSection/ClassSectionSelector"
 import { ClassSectionManager } from "./ClassSection/ClassSectionManager"
 import { TeacherSubjectManager } from "./TeacherSubject/TeacherSubjectManager"
@@ -116,48 +116,6 @@ export const TimetableManagement = () => {
     [selectedCell, selectedClass, selectedSection, teachers, updateTeacherInTimeTable, toast],
   )
 
-  const handleSaveTimetable = useCallback(async () => {
-    if (selectedClass && selectedSection) {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
-        if (!user) return
-
-        const { error } = await supabase.from("timetableentries").upsert(
-          timeTable.map((entry) => ({
-            ...entry,
-            user_id: user.id,
-            class_id: selectedClass,
-            section_id: selectedSection,
-          })),
-          { onConflict: "user_id,class_id,section_id,day_id,time_slot_id" },
-        )
-
-        if (error) {
-          console.error("Error saving timetable:", error)
-          toast({
-            title: "Error",
-            description: "An error occurred while saving the timetable.",
-            variant: "destructive",
-          })
-        } else {
-          toast({
-            title: "Timetable Saved",
-            description: "The timetable has been successfully saved.",
-          })
-        }
-      } catch (error) {
-        console.error("Error saving timetable:", error)
-        toast({
-          title: "Error",
-          description: "An error occurred while saving the timetable.",
-          variant: "destructive",
-        })
-      }
-    }
-  }, [selectedClass, selectedSection, timeTable, supabase, toast])
-
   const handleLogout = async () => {
     await supabase.auth.signOut()
     router.push("/login")
@@ -168,9 +126,6 @@ export const TimetableManagement = () => {
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">Timetable Management System</h1>
         <div className="flex items-center space-x-4">
-          <Button onClick={handleSaveTimetable} variant="outline">
-            <Save className="mr-2 h-4 w-4" /> Save Timetable
-          </Button>
           <Button onClick={handleLogout} variant="outline">
             <LogOut className="mr-2 h-4 w-4" /> Logout
           </Button>
@@ -294,4 +249,3 @@ export const TimetableManagement = () => {
     </div>
   )
 }
-
