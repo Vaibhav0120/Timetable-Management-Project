@@ -47,8 +47,15 @@ export const TimetableManagement = () => {
   const { teachers, addTeacher, updateTeacher, deleteTeacher, fetchTeachers } = useTeachers()
   const { subjects, addSubject, updateSubject, deleteSubject, fetchSubjects } = useSubjects()
   const { timeSlots, addTimeSlot, updateTimeSlot, deleteTimeSlot, fetchTimeSlots } = useTimeSlots()
-  const { timeTable, isLoading, initializeTimeTable, fetchTimetable, updateTeacherInTimeTable, clearTimeTable } =
-    useTimetable()
+  const {
+    timeTable,
+    isLoading,
+    initializeTimeTable,
+    fetchTimetable,
+    updateTeacherInTimeTable,
+    clearTimeTable,
+    checkTeacherConflict,
+  } = useTimetable()
 
   useEffect(() => {
     fetchClasses()
@@ -90,6 +97,25 @@ export const TimetableManagement = () => {
         }
 
         try {
+          const hasConflict = await checkTeacherConflict(
+            newTeacherId,
+            selectedCell.class_id,
+            selectedCell.section_id,
+            selectedCell.time_slot_id,
+            selectedCell.day_id,
+          )
+
+          if (hasConflict) {
+            const conflictClass = classes.find((c) => c.id === selectedCell.class_id)
+            const conflictSection = conflictClass?.sections.find((s) => s.id === selectedCell.section_id)
+            toast({
+              title: "Teacher Assignment Conflict",
+              description: `${teacher.name} is already assigned to ${conflictClass?.name} ${conflictSection?.name} during this time slot.`,
+              variant: "destructive",
+            })
+            return
+          }
+
           await updateTeacherInTimeTable(
             newTeacherId,
             teacher.subject_id,
@@ -113,7 +139,16 @@ export const TimetableManagement = () => {
         }
       }
     },
-    [selectedCell, selectedClass, selectedSection, teachers, updateTeacherInTimeTable, toast],
+    [
+      selectedCell,
+      selectedClass,
+      selectedSection,
+      teachers,
+      updateTeacherInTimeTable,
+      checkTeacherConflict,
+      classes,
+      toast,
+    ],
   )
 
   const handleLogout = async () => {
@@ -249,3 +284,4 @@ export const TimetableManagement = () => {
     </div>
   )
 }
+

@@ -190,6 +190,40 @@ export const useTimetable = () => {
     setTimeTable([])
   }, [])
 
+  // Add this new function inside the useTimetable hook
+  const checkTeacherConflict = useCallback(
+    async (teacherId: string, classId: string, sectionId: string, timeSlotId: string, dayId: number) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) {
+        console.error("User not authenticated")
+        return false
+      }
+
+      try {
+        const { data, error } = await supabase.rpc("check_teacher_conflict", {
+          p_teacher_id: teacherId,
+          p_class_id: classId,
+          p_section_id: sectionId,
+          p_time_slot_id: timeSlotId,
+          p_day_id: dayId,
+        })
+
+        if (error) {
+          console.error("Error checking teacher conflict:", error)
+          return false
+        }
+
+        return data
+      } catch (error) {
+        console.error("Unexpected error checking teacher conflict:", error)
+        return false
+      }
+    },
+    [supabase],
+  )
+
   return {
     timeTable,
     isLoading,
@@ -197,6 +231,7 @@ export const useTimetable = () => {
     fetchTimetable,
     updateTeacherInTimeTable,
     clearTimeTable,
+    checkTeacherConflict, // Add this line
   }
 }
 
