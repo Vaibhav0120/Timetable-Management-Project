@@ -4,6 +4,8 @@ Efficiently manage classes, sections, teachers, and subjects while ensuring conf
 
 [Watch It Live](https://timetable-management-project.vercel.app/)
 
+Note: This project uses [Supabase](https://supabase.com/) for database and authentication services. On the free tier, Supabase projects become **paused after 15 days of inactivity**. During this time, the backend (database and auth) stops functioning, which may result in **login or data fetching issues**.
+
 ## 🚀 Features
 
 - 🏫 **Manage Classes and Sections**Add, edit, and delete classes and sections to keep the system organized.
@@ -84,29 +86,12 @@ The application employs custom React hooks to manage the state of various entiti
 
 ## 🖥️ Screenshots
 
-_Add screenshots of your application here to give visitors a visual overview of its features._
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! To contribute:
-
-1. Fork the repository.
-2. Create a new branch for your feature/bugfix.
-3. Submit a pull request once your changes are complete.
-
----
-
-## 📜 License
-
-This project is licensed under the [MIT License](LICENSE).
-
----
-
-## ✨ Acknowledgments
-
-Special thanks to all contributors and open-source libraries that made this project possible.
+<img src="https://github.com/user-attachments/assets/f2486379-f51c-4387-9e1d-8934334ad324">
+<img src="https://github.com/user-attachments/assets/79a38269-726c-4680-ac12-378c72c29d8b">
+<img src="https://github.com/user-attachments/assets/b8aaf8d1-aae5-4f2f-99ec-9fbe06c5af85">
+<img src="https://github.com/user-attachments/assets/247a3df8-dd4e-43df-9cae-2876bde36b9e">
+<img src="https://github.com/user-attachments/assets/1d955290-ad36-45a5-a5e3-613095e3ed83">
+<img src="https://github.com/user-attachments/assets/9477b4f6-a9ff-4240-8a0e-1748f9c15a10">
 
 ---
 
